@@ -1,0 +1,17 @@
+# 환경변수 및 로컬 환자 설문 결과 데이터 (절대 Git 업로드 금지)
+.env
+survey_data/
+*.csv
+SUPABASE*.txt
+
+# 원내 원본 PDF 파일
+*.pdf
+
+# Python 캐시 및 가상환경
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.streamlit/

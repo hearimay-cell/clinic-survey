@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>해아림한의원 모바일 자가보고 설문</title>
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --primary-light: #ccfbf1;
+      --primary-soft: #f0fdfa;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 90px;
+    }
+
+    /* 상단 고정 헤더 & 진행률 바 */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    }
+
+    .header-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 12px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-badge {
+      background: var(--primary-soft);
+      border: 1.5px solid var(--primary);
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .progress-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 16px 10px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0d9488, #10b981);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* 개인정보 미수집 안내 및 차트번호 입력 카드 */
+    .info-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      margin-bottom: 16px;
+    }
+
+    .privacy-notice {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .field-group {
+      margin-bottom: 12px;
+    }
+
+    .field-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .chart-input {
+      width: 100%;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 13px 15px;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .chart-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+
+    /* 설문 종류 선택 칩 (URL에 type이 없거나 추가 선택 시) */
+    .survey-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .survey-chip {
+      padding: 9px 13px;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      background: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .survey-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+    }
+
+    /* 설문 섹션 헤더 */
+    .survey-section-header {
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin: 24px 0 14px;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
+    }
+
+    .survey-section-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+    }
+
+    .survey-section-desc {
+      font-size: 0.9rem;
+      opacity: 0.92;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    /* 개별 문항 카드 */
+    .question-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      border: 2px solid var(--border);
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
+      transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+      scroll-margin-top: 110px;
+    }
+
+    .question-card.answered {
+      border-color: #99f6e4;
+      background: #ffffff;
+    }
+
+    .question-card.unanswered-error {
+      border-color: var(--danger);
+      background: #fef2f2;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .question-text {
+      font-size: 1.03rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .status-dot {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .question-card.answered .status-dot {
+      background: var(--success);
+      color: #fff;
+    }
+
+    /* 모바일 터치 최적화 대형 라디오 버튼 리스트 */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 54px;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: #334155;
+      gap: 12px;
+      user-select: none;
+    }
+
+    .option-btn:active {
+      transform: scale(0.985);
+    }
+
+    .option-radio-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #94a3b8;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .option-radio-inner {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(15, 118, 110, 0.12);
+    }
+
+    .option-btn.selected .option-radio-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
+    .option-btn.selected .option-radio-inner {
+      background: #fff;
+    }
+
+    .option-score-badge {
+      margin-left: auto;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #e2e8f0;
+      color: #475569;
+      flex-shrink: 0;
+    }
+
+    .option-btn.selected .option-score-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* 체크리스트형 (틱 초진 / 한방진단검사지) 터치 그리드 */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 440px) {
+      .checklist-grid.two-col {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .check-item-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 50px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .check-item-btn.checked {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .check-box-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid #94a3b8;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      color: transparent;
+    }
+
+    .check-item-btn.checked .check-box-icon {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* 하단 제출 버튼 바 */
+    .submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      z-index: 100;
+    }
+
+    .submit-bar-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      min-height: 56px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.99);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* 완료 화면 */
+    .complete-screen {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      margin-top: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .complete-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 고정 헤더 -->
+  <header class="sticky-header">
+    <div class="header-inner">
+      <div class="brand-title">
+        <span>🌿</span>
+        <span>해아림한의원 자가보고 설문</span>
+      </div>
+      <div class="chart-badge" id="headerChartBadge">차트번호 미입력</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progressLabel">설문 진행률</span>
+        <span id="progressCount">0 / 0 문항</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 메인 작성 영역 -->
+    <div id="surveyFormContainer">
+      <section class="info-card">
+        <div class="privacy-notice">
+          <span>🔒</span>
+          <div>
+            <strong>개인식별정보 미수집 안내</strong><br/>
+            본 설문은 개인정보 보호를 위해 <u>이름, 연락처, 생년월일 등 개인정보를 입력받지 않으며</u>, 오직 원내 차트번호로만 안전하게 접수됩니다.
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="chartIdInput">환자 차트번호 (안내받은 번호 확인 또는 입력)</label>
+          <input
+            type="text"
+            id="chartIdInput"
+            class="chart-input"
+            placeholder="예: 10293 (차트번호를 입력해주세요)"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="field-group" id="surveySelectorWrap" style="margin-top: 14px;">
+          <label class="field-label">작성할 설문 종류 <span style="font-weight:500; font-size:0.82rem; color:#64748b;">(터치하여 선택/해제 가능)</span></label>
+          <div class="survey-selector" id="surveyChipsContainer"></div>
+        </div>
+      </section>
+
+      <!-- 동적 설문 문항 렌더링 영역 -->
+      <div id="questionsRoot"></div>
+    </div>
+
+    <!-- 제출 완료 화면 -->
+    <div id="completeScreen" class="complete-screen">
+      <div class="complete-icon">✓</div>
+      <h2 style="margin: 0 0 10px; font-size: 1.45rem; color: #0f172a;">설문 제출이 완료되었습니다</h2>
+      <p style="color: #475569; font-size: 0.98rem; margin: 0 0 20px;">
+        작성하신 설문 결과가 진료실로 안전하게 전달되었습니다.<br/>
+        창을 닫으시고 대기해 주시면 됩니다. 감사합니다.
+      </p>
+      <div id="submittedSummaryBox" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; text-align:left; font-size:0.9rem; color:#334155; margin-bottom:18px;"></div>
+      <button type="button" onclick="window.location.reload()" style="padding:12px 24px; border-radius:10px; border:1px solid #cbd5e1; background:#fff; font-weight:700; cursor:pointer;">
+        다른 설문 추가로 작성하기
+      </button>
+    </div>
+  </main>
+
+  <!-- 하단 고정 제출 버튼 -->
+  <div class="submit-bar" id="submitBar">
+    <div class="submit-bar-inner">
+      <button type="button" class="submit-btn" id="submitBtn" onclick="handleSubmitSurvey()">
+        설문 작성 완료 및 제출하기
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toastMsg"></div>
+
+  <script>
+    // =========================================================================
+    // 1. Supabase 연동 설정 (환경변수 주입 또는 URL 쿼리 파라미터 지원)
+    // =========================================================================
+    const DEFAULT_SUPABASE_CONFIG = {
+      url: "https://ouuuhvnpudbdymtfdkkt.supabase.co",
+      anonKey: "sb_publishable_G5OESAubGfpjSNXMamPUIg_XltZ8JgP"
+    };
+
+    // 설문 카탈로그 데이터
+    const SURVEY_CATALOG = {"BAI": {"code": "BAI", "title": "1. Beck 불안척도 (BAI)", "short_title": "BAI (불안)", "category": "심리/정서", "description": "오늘을 포함해서 지난 한 주 동안 자신의 상태를 가장 잘 나타낸다고 생각되는 곳에 체크하세요.", "max_score": 63, "alert_threshold": 2, "critical_items": [11, 14, 15, 16, 19], "options": [{"value": 0, "label": "전혀없음"}, {"value": 1, "label": "약간있음"}, {"value": 2, "label": "상당히있음"}, {"value": 3, "label": "아주심함"}], "cutoffs": [{"min": 0, "max": 7, "level": "정상 (무불안)", "color": "#10b981", "badge": "normal"}, {"min": 8, "max": 15, "level": "경도 불안", "color": "#f59e0b", "badge": "mild"}, {"min": 16, "max": 25, "level": "중등도 불안", "color": "#f97316", "badge": "moderate"}, {"min": 26, "max": 63, "level": "중증 불안", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 가끔씩 몸이 저리고 쑤시며 감각이 마비된 느낌을 받는다.", "2. 흥분된 느낌을 받는다.", "3. 가끔씩 다리가 떨리곤 한다.", "4. 편안하게 쉴 수가 없다.", "5. 매우 나쁜 일이 일어날 것 같은 두려움을 느낀다.", "6. 어지러움(현기증)을 느낀다.", "7. 가끔씩 심장이 두근거리고 빨리 뛴다.", "8. 침착하지 못하다.", "9. 자주 겁을 먹고 무서움을 느낀다.", "10. 신경이 과민되어 있다.", "11. 가끔씩 숨이 막히고 질식할 것 같다.", "12. 자주 손이 떨린다.", "13. 안절부절 못해한다.", "14. 미칠 것 같은 두려움을 느낀다.", "15. 가끔씩 숨쉬기 곤란할 때가 있다.", "16. 죽을 것 같은 두려움을 느낀다.", "17. 불안한 상태에 있다.", "18. 자주 소화가 잘 안되고, 뱃속이 불편하다.", "19. 가끔씩 기절할 것 같다.", "20. 자주 얼굴이 붉어지곤 한다.", "21. 땀을 많이 흘린다.(더위로 인한 경우는 제외)"]}, "PHQ9": {"code": "PHQ9", "title": "2. PHQ-9 우울척도", "short_title": "PHQ-9 (우울)", "category": "심리/정서", "description": "지난 2주간, 얼마나 자주 다음과 같은 문제들로 곤란을 겪으셨습니까? 지난 2주 동안에 아래와 같은 생각을 한 날을 헤아려서 해당하는 란에 체크 표시하세요.", "max_score": 27, "alert_threshold": 2, "critical_items": [9], "options": [{"value": 0, "label": "없음"}, {"value": 1, "label": "2,3일 이상"}, {"value": 2, "label": "7일 이상"}, {"value": 3, "label": "거의 매일"}], "cutoffs": [{"min": 0, "max": 4, "level": "정상 (유의한 우울 없음)", "color": "#10b981", "badge": "normal"}, {"min": 5, "max": 9, "level": "경미한 우울", "color": "#f59e0b", "badge": "mild"}, {"min": 10, "max": 19, "level": "중등도 우울", "color": "#f97316", "badge": "moderate"}, {"min": 20, "max": 27, "level": "중증 우울", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 기분이 가라앉거나, 우울하거나, 희망이 없다고 느꼈다.", "2. 평소 하던 일에 대한 흥미가 없어지거나 즐거움을 느끼지 못했다.", "3. 잠들기가 어렵거나 자주 깼다 / 혹은 너무 많이 잤다.", "4. 평소보다 식욕이 줄었다 / 혹은 평소보다 많이 먹었다.", "5. 다른 사람들이 눈치 챌 정도로 평소보다 말과 행동이 느려졌다 / 혹은 너무 안절부절 못해서 가만히 앉아있을 수 없었다.", "6. 피곤하고 기운이 없었다.", "7. 내가 잘못 했거나, 실패했다는 생각이 들었다 / 혹은 자신과 가족을 실망시켰다고 생각했다.", "8. 신문을 읽거나 TV를 보는 것과 같은 일상적인 일에도 집중할 수가 없었다.", "9. 차라리 죽는 것이 낫겠다고 생각했다 / 혹은 자해할 생각을 했다."]}, "PDI": {"code": "PDI", "title": "3. 공황장애 평가척도 (PDI)", "short_title": "PDI (공황)", "category": "심리/정서", "description": "다음에 기술된 내용을 읽고 최근 자신에게 해당되는 칸에 체크하세요.", "max_score": 52, "alert_threshold": 2, "critical_items": [1, 4, 5, 10, 11], "options": [{"value": 0, "label": "전혀없다"}, {"value": 1, "label": "드물게있다"}, {"value": 2, "label": "종종있다"}, {"value": 3, "label": "자주있다"}, {"value": 4, "label": "매우자주있다"}], "cutoffs": [{"min": 0, "max": 10, "level": "정상~경미", "color": "#10b981", "badge": "normal"}, {"min": 11, "max": 22, "level": "경도 공황증상", "color": "#f59e0b", "badge": "mild"}, {"min": 23, "max": 35, "level": "중등도 공황증상", "color": "#f97316", "badge": "moderate"}, {"min": 36, "max": 52, "level": "중증 공황증상", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 가슴이 심하게 두근거리거나 심장박동이 빨라진다.", "2. 긴장하면서 땀을 많이 흘린다.", "3. 몸이 떨리거나 흔들린다.", "4. 숨이 가쁘거나 답답한 느낌이 든다.", "5. 숨이 막히는 느낌이 든다.", "6. 가슴에 통증이나 불편감이 있다.", "7. 메스꺼움이나 복부에 불편감이 있다.", "8. 어지럽거나 멍한 느낌이 들거나 쓰러질 것 같은 느낌이 든다.", "9. 비현실적인 느낌이나 자신으로부터 분리된 듯한 느낌이 든다.", "10. 스스로 통제할 수 없거나 미칠 것 같은 두려움이 든다.", "11. 죽을 것 같은 공포감이 든다.", "12. 감각이 둔해지거나 따끔거리는 느낌이 든다.", "13. 춥거나 화끈거리는 느낌이 든다."]}, "ISI": {"code": "ISI", "title": "4. 불면증평가 (ISI)", "short_title": "ISI (불면증)", "category": "수면/자율신경", "description": "당신의 불면증이 어느 정도로 심한지를 측정하는 검사 항목입니다. 오늘을 포함해 지난 2주일 동안 자신이 느낀 가장 적합한 항목에 체크하세요.", "max_score": 28, "alert_threshold": 3, "critical_items": [1, 2, 3], "options": [{"value": 0, "label": "전혀아니다"}, {"value": 1, "label": "약간그렇다"}, {"value": 2, "label": "보통이다"}, {"value": 3, "label": "그렇다"}, {"value": 4, "label": "매우그렇다"}], "custom_options_by_index": {"3": [{"value": 0, "label": "만족하고 있음"}, {"value": 1, "label": "약간만 만족"}, {"value": 2, "label": "그저 그렇다"}, {"value": 3, "label": "불만족"}, {"value": 4, "label": "매우 불만족"}], "5": [{"value": 0, "label": "전혀 손상이 없어 보인다"}, {"value": 1, "label": "약간 있어 보인다"}, {"value": 2, "label": "어느정도 있어 보인다"}, {"value": 3, "label": "상당히 있어보인다"}, {"value": 4, "label": "매우 심하게 있어 보인다"}]}, "cutoffs": [{"min": 0, "max": 7, "level": "정상 (불면증 없음)", "color": "#10b981", "badge": "normal"}, {"min": 8, "max": 14, "level": "경미한 불면증 (역치하)", "color": "#f59e0b", "badge": "mild"}, {"min": 15, "max": 21, "level": "중등도 불면증 (임상적 불면)", "color": "#f97316", "badge": "moderate"}, {"min": 22, "max": 28, "level": "중증 불면증", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 잠들기 어렵다.", "2. 잠을 유지하기 어렵다.", "3. 잠에서 쉽게 깬다.", "4. 당신의 현재 수면양상에 관하여 얼마나 만족하고 있습니까?", "5. 당신이 생각하기에 당신의 수면 장애가 어느 정도로 당신의 낮 활동을 방해합니까? (예: 낮에 피곤함, 직장이나 가사에 일하는 능력, 집중력, 기억력, 기분 등)", "6. 수면장애로 인한 당신의 손상(불만족이나 생활문제 등)이 다른 사람들에게 어떻게 보인다고 생각됩니까?", "7. 현재 당신의 수면 장애에 관하여 얼마나 걱정하고 있습니까?"]}, "GAD7": {"code": "GAD7", "title": "범불안장애 척도 (GAD-7)", "short_title": "GAD-7 (범불안)", "category": "심리/정서", "description": "지난 2주 동안, 다음과 같은 문제들로 인해 얼마나 자주 방해를 받으셨습니까?", "max_score": 21, "alert_threshold": 2, "critical_items": [1, 2, 7], "options": [{"value": 0, "label": "전혀 없음"}, {"value": 1, "label": "며칠 동안"}, {"value": 2, "label": "일주일 이상"}, {"value": 3, "label": "거의 매일"}], "cutoffs": [{"min": 0, "max": 4, "level": "정상 (주의 요하지 않음)", "color": "#10b981", "badge": "normal"}, {"min": 5, "max": 9, "level": "경도 불안", "color": "#f59e0b", "badge": "mild"}, {"min": 10, "max": 14, "level": "중등도 불안 (주의 및 검사 요망)", "color": "#f97316", "badge": "moderate"}, {"min": 15, "max": 21, "level": "중증 불안 (적극적 치료 요망)", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 초조하거나 불안하거나 조마조마하게 느낀다.", "2. 걱정하는 것을 멈추거나 조절할 수가 없다.", "3. 여러 가지 것들에 대해 걱정을 너무 많이 한다.", "4. 편하게 있기가 어렵다.", "5. 너무 안절부절못해서 가만히 있기가 힘들다.", "6. 쉽게 짜증이 나거나 쉽게 성을 내게 된다.", "7. 마치 끔찍한 일이 생길 것처럼 두렵게 느껴진다."]}, "ADHD": {"code": "ADHD", "title": "7. 코너스 ADHD설문 (K-ARS)", "short_title": "ADHD 설문", "category": "소아/집중력", "description": "지난 일주일동안 아이(또는 본인)가 보인 행동을 가장 잘 기술한 항목에 표시해 주세요.", "max_score": 54, "alert_threshold": 2, "critical_items": [], "subscales": {"inattention": {"name": "부주의 (홀수 문항)", "indices": [0, 2, 4, 6, 8, 10, 12, 14, 16], "max": 27}, "hyperactivity": {"name": "과잉행동/충동성 (짝수 문항)", "indices": [1, 3, 5, 7, 9, 11, 13, 15, 17], "max": 27}}, "options": [{"value": 0, "label": "전혀 아니다"}, {"value": 1, "label": "약간 그렇다"}, {"value": 2, "label": "자주 그렇다"}, {"value": 3, "label": "매우 자주 그렇다"}], "cutoffs": [{"min": 0, "max": 12, "level": "정상 범위", "color": "#10b981", "badge": "normal"}, {"min": 13, "max": 18, "level": "경계선 (주의관찰 필요)", "color": "#f59e0b", "badge": "mild"}, {"min": 19, "max": 29, "level": "주의력결핍/과잉행동 의심 (임상절단점 이상)", "color": "#f97316", "badge": "moderate"}, {"min": 30, "max": 54, "level": "고위험 ADHD 증상군", "color": "#ef4444", "badge": "severe"}], "questions": ["1. 학교 수업이나 일, 혹은 다른 활동을 할 때 주의집중을 하지 않고 부주의해서 실수를 많이 한다.", "2. 가만히 앉아 있지를 못하고 손발을 계속 움직이거나 몸을 꿈틀거린다.", "3. 과제나 놀이를 할 때 지속적으로 주의 집중하는데 어려움이 있다.", "4. 수업시간이나 가만히 있어야 하는 상황에서 자리에서 일어나 돌아다닌다.", "5. 다른 사람이 직접 이야기하는데도 귀 기울여 듣지 않는 것처럼 보인다.", "6. 상황에 맞지 않게 과도하게 뛰어다니거나 기어오른다.", "7. 지시에 따라서 학업이나 집안일이나 자신이 해야 할 일을 끝마치지 못한다.", "8. 조용히 하는 놀이나 오락 활동에 참여하는 데 어려움이 있다.", "9. 과제나 활동을 체계적으로 하는데 어려움이 있다.", "10. 항상 끊임없이 움직이거나 마치 모터가 달려서 움직이는 것처럼 행동한다.", "11. 공부나 숙제 등 지속적으로 정신적 노력이 필요한 일이나 활동을 피하거나 싫어하거나 또는 하기를 꺼려한다.", "12. 말을 너무 많이 한다.", "13. 과제나 활동을 하는데 필요한 것들(장난감, 숙제, 연필 등)을 잊어버린다.", "14. 질문을 끝까지 듣지 않고 대답한다.", "15. 외부자극에 쉽게 산만해진다.", "16. 자기순서를 기다리지 못한다.", "17. 일상적인 활동을 잊어버린다.(예: 숙제, 도시락)", "18. 다른 사람을 방해하고 간섭한다."]}, "YGTSS": {"code": "YGTSS", "title": "6. 예일 틱 증상 평가척도 (YGTSS)", "short_title": "YGTSS (예일 틱척도)", "category": "소아/틱장애", "description": "현재의 틱 증상의 심한 정도를 체크합니다. 지난 일주일 동안의 운동틱 및 음성틱에 대한 설명 중 가장 맞는 항목에 체크하세요.", "max_score": 100, "alert_threshold": 3, "critical_items": [5, 10, 11], "is_ygtss": true, "cutoffs": [{"min": 0, "max": 19, "level": "경미한 틱 증상", "color": "#10b981", "badge": "normal"}, {"min": 20, "max": 39, "level": "경도~중등도 틱 증상", "color": "#f59e0b", "badge": "mild"}, {"min": 40, "max": 59, "level": "중등도~심한 틱 증상", "color": "#f97316", "badge": "moderate"}, {"min": 60, "max": 100, "level": "중증 틱 장애", "color": "#ef4444", "badge": "severe"}], "questions": ["[운동틱 1. 종류] 지난 일주일동안 당신은 얼마나 많은 종류의 운동틱 증상을 경험(관찰) 하셨습니까?", "[운동틱 2. 빈도] 지난 일주일동안 운동틱 증상 없이 지낸 가장 긴 기간은 어느 정도입니까? (자고 있는 시간은 계산하지 마십시오.)", "[운동틱 3. 강도] 지난 일주일동안 당신이 경험(관찰)한 운동틱은 얼마나 심했었습니까?", "[운동틱 4. 복합성] 지난 일주일동안 당신이 경험(관찰)한 운동틱은 얼마나 쉽게 정상적인 행동으로 위장될 수 있습니까?", "[운동틱 5. 방해정도] 지난 일주일동안 당신이 경험(관찰)한 운동틱은 당신이 하고자 하는 일이나 말을 얼마나 자주 방해하였습니까?", "[음성틱 1. 종류] 지난 일주일동안 당신은 얼마나 많은 종류의 음성틱 증상을 경험(관찰) 하셨습니까?", "[음성틱 2. 빈도] 지난 일주일동안 음성틱 증상 없이 지낸 가장 긴 기간은 어느 정도입니까? (자고 있는 시간은 계산하지 마십시오.)", "[음성틱 3. 강도] 지난 일주일동안 당신이 경험(관찰)한 음성틱은 얼마나 심했었습니까?", "[음성틱 4. 복합성] 지난 일주일동안 당신이 경험(관찰)한 음성틱은 얼마나 쉽게 정상적인 행동으로 위장될 수 있습니까?", "[음성틱 5. 방해정도] 지난 일주일동안 당신이 경험(관찰)한 음성틱은 당신이 하고자 하는 일이나 말을 얼마나 자주 방해하였습니까?", "[틱장애척도] 당신의 틱이 얼마나 심한가와는 무관하게, 지난 일주일동안의 틱 증상이 얼마나 당신을 괴롭혔습니까?", "[전반적인 인상] 다음 중 지난 일주일간의 틱 증상 당신의 인생에 전반적으로 어떤 영향을 주었는지를 가장 잘 설명한 항목은 어떤 것입니까?"], "custom_options_by_index": {"0": [{"value": 0, "label": "0점: 나는 어떤 틱 증상도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 나는 오직 하나의 틱 증상만을 경험(관찰)하였다."}, {"value": 2, "label": "2점: 나는 두 개에서 다섯 개 사이의 틱 증상을 경험(관찰)하였다."}, {"value": 3, "label": "3점: 나는 다섯 개 이상의 틱 증상을 경험(관찰)하였다."}, {"value": 4, "label": "4점: 나는 적어도 세 개의 틱 증상과 하나 또는 두 종류의 여러 가지 틱 증상 혼합을 경험(관찰)하였다."}, {"value": 5, "label": "5점: 나는 적어도 세 개의 틱 증상과 적어도 세 종류의 여러 가지 틱 증상 혼합을 경험(관찰)하였다."}], "1": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 나는 거의 언제나 틱을 경험(관찰)하지 않고 지낸다. (드물게 나타나고 틱이 없는 기간이 며칠동안 지속)"}, {"value": 2, "label": "2점: 나는 자주 틱을 경험하지 않고 지낸다. (대개 매일 일어나나 수분 이상 지속되지 않으며 하루 중 거의 대부분 틱 없음)"}, {"value": 3, "label": "3점: 나는 가끔 틱을 경험하지 않고 지낸다. (매일 일어나나 틱이 없는 기간이 3시간 이상 될 때가 많다)"}, {"value": 4, "label": "4점: 나는 틱을 경험하지 않고 지낼 때가 거의 없다. (깨어있는 매시간 일어나고 틱 없는 기간이 있다면 30분 정도)"}, {"value": 5, "label": "5점: 나는 틱을 경험하지 않고 지낼 때가 전혀 없다. (사실상 언제나 나타나며 틱 없는 기간은 기껏해야 5~10분 정도)"}], "2": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 아주 가벼운 정도이다. (너무 미약하여 다른 사람에게 눈치채이거나 들리지 않는다)"}, {"value": 2, "label": "2점: 조금 심한 정도이다. (비슷한 자발적 행동/말보다 더 심하지만 미약해서 눈치채이지 않을 때가 흔하다)"}, {"value": 3, "label": "3점: 중간 정도로 심하다. (비슷한 자발적 행동/말보다 더 심하여 다른 사람들에게 눈치채이거나 들릴 수 있다)"}, {"value": 4, "label": "4점: 매우 심하다. (자주 과장된 성격을 띠어 사람들의 관심을 끌고 눈치채이거나 들릴 수 있다)"}, {"value": 5, "label": "5점: 극도로 심하다. (극도로 심하고 과장되어 언제나 눈치채이며 신체적 외상/자극 위험이 있다)"}], "3": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험하지 않았다. 만약 있더라도 모두 분명히 단순성이다."}, {"value": 1, "label": "1점: 어떤 틱은 분명히 단순성은 아니다. 틱은 쉽게 위장되어진다."}, {"value": 2, "label": "2점: 분명히 복합성이고 짧은 시간동안의 자동적으로 반복되는 행동/말과 유사하여 쉽게 위장된다."}, {"value": 3, "label": "3점: 보다 복합성이어서 위장되기 힘들 수 있으나 정상적인 행동이나 말로 설명될 수 있는 갑작스런 발작으로 나타난다."}, {"value": 4, "label": "4점: 매우 복합적이고 지속적 발작으로 나타나고 특이/부적절하여 위장되기 힘들고 정상 행동/말로 쉽게 설명되지 않는다."}, {"value": 5, "label": "5점: 오랫동안 여러 차례 발작으로 나타나는데 기괴/심하게 특이하여 위장될 수 없고 정상 행동/말로 설명될 수 없다."}], "4": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 틱이 있더라도 나의 행동이나 말을 방해하지 않는다."}, {"value": 2, "label": "2점: 틱이 있을 때 가끔 나의 행동이나 말을 방해한다."}, {"value": 3, "label": "3점: 틱이 있을 때 자주 나의 행동이나 말을 방해한다."}, {"value": 4, "label": "4점: 틱이 있을 때 자주 나의 행동이나 말을 방해하고 가끔 내가 하고자 하는 행동이나 말을 중단시킨다."}, {"value": 5, "label": "5점: 틱이 있을 때 자주 그리고 완전히 내가 하고자 하는 말이나 행동을 중단시킨다."}], "5": [{"value": 0, "label": "0점: 나는 어떤 틱 증상도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 나는 오직 하나의 틱 증상만을 경험(관찰)하였다."}, {"value": 2, "label": "2점: 나는 두 개에서 다섯 개 사이의 틱 증상을 경험(관찰)하였다."}, {"value": 3, "label": "3점: 나는 다섯 개 이상의 틱 증상을 경험(관찰)하였다."}, {"value": 4, "label": "4점: 나는 적어도 세 개의 틱 증상과 하나 또는 두 종류의 여러 가지 틱 증상 혼합을 경험(관찰)하였다."}, {"value": 5, "label": "5점: 나는 적어도 세 개의 틱 증상과 적어도 세 종류의 여러 가지 틱 증상 혼합을 경험(관찰)하였다."}], "6": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 나는 거의 언제나 틱을 경험(관찰)하지 않고 지낸다. (드물게 나타나고 틱이 없는 기간이 며칠동안 지속)"}, {"value": 2, "label": "2점: 나는 자주 틱을 경험하지 않고 지낸다. (대개 매일 일어나나 수분 이상 지속되지 않으며 하루 중 거의 대부분 틱 없음)"}, {"value": 3, "label": "3점: 나는 가끔 틱을 경험하지 않고 지낸다. (매일 일어나나 틱이 없는 기간이 3시간 이상 될 때가 많다)"}, {"value": 4, "label": "4점: 나는 틱을 경험하지 않고 지낼 때가 거의 없다. (깨어있는 매시간 일어나고 틱 없는 기간이 있다면 30분 정도)"}, {"value": 5, "label": "5점: 나는 틱을 경험하지 않고 지낼 때가 전혀 없다. (사실상 언제나 나타나며 틱 없는 기간은 기껏해야 5~10분 정도)"}], "7": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 아주 가벼운 정도이다. (너무 미약하여 다른 사람에게 눈치채이거나 들리지 않는다)"}, {"value": 2, "label": "2점: 조금 심한 정도이다. (비슷한 자발적 행동/말보다 더 심하지만 미약해서 눈치채이지 않을 때가 흔하다)"}, {"value": 3, "label": "3점: 중간 정도로 심하다. (비슷한 자발적 행동/말보다 더 심하여 다른 사람들에게 눈치채이거나 들릴 수 있다)"}, {"value": 4, "label": "4점: 매우 심하다. (자주 과장된 성격을 띠어 사람들의 관심을 끌고 눈치채이거나 들릴 수 있다)"}, {"value": 5, "label": "5점: 극도로 심하다. (극도로 심하고 과장되어 언제나 눈치채이며 신체적 외상/자극 위험이 있다)"}], "8": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험하지 않았다. 만약 있더라도 모두 분명히 단순성이다."}, {"value": 1, "label": "1점: 어떤 틱은 분명히 단순성은 아니다. 틱은 쉽게 위장되어진다."}, {"value": 2, "label": "2점: 분명히 복합성이고 짧은 시간동안의 자동적으로 반복되는 행동/말과 유사하여 쉽게 위장된다."}, {"value": 3, "label": "3점: 보다 복합성이어서 위장되기 힘들 수 있으나 정상적인 행동이나 말로 설명될 수 있는 갑작스런 발작으로 나타난다."}, {"value": 4, "label": "4점: 매우 복합적이고 지속적 발작으로 나타나고 특이/부적절하여 위장되기 힘들고 정상 행동/말로 쉽게 설명되지 않는다."}, {"value": 5, "label": "5점: 오랫동안 여러 차례 발작으로 나타나는데 기괴/심하게 특이하여 위장될 수 없고 정상 행동/말로 설명될 수 없다."}], "9": [{"value": 0, "label": "0점: 나는 어떤 틱도 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점: 틱이 있더라도 나의 행동이나 말을 방해하지 않는다."}, {"value": 2, "label": "2점: 틱이 있을 때 가끔 나의 행동이나 말을 방해한다."}, {"value": 3, "label": "3점: 틱이 있을 때 자주 나의 행동이나 말을 방해한다."}, {"value": 4, "label": "4점: 틱이 있을 때 자주 나의 행동이나 말을 방해하고 가끔 내가 하고자 하는 행동이나 말을 중단시킨다."}, {"value": 5, "label": "5점: 틱이 있을 때 자주 그리고 완전히 내가 하고자 하는 말이나 행동을 중단시킨다."}], "10": [{"value": 0, "label": "0점: 전혀 괴롭히지 않았다."}, {"value": 10, "label": "10점: 아주 조금 괴로움 (자신감이나 가족/사회/학업/직업 기능의 미약한 어려움과 연관)"}, {"value": 20, "label": "20점: 조금 괴로움 (자신감이나 가족/사회/학업/직업 기능의 조금의 어려움과 연관)"}, {"value": 30, "label": "30점: 중간 정도로 괴로움 (가족 갈등, 또래 놀림, 주기적 사회적 교제 기피, 학업/직업 지장 등 분명한 문제)"}, {"value": 40, "label": "40점: 심하게 괴로움 (자신감이나 가족/사회/학업/직업 기능의 중요한 문제와 연관)"}, {"value": 50, "label": "50점: 극심하게 괴로움 (심한 우울감, 가족 붕괴, 사회적 유대 붕괴, 학교 중단/실직 등 극심한 어려움)"}], "11": [{"value": 0, "label": "0점 (없음): 나는 틱을 경험(관찰)하지 않았다."}, {"value": 1, "label": "1점 (가벼움): 나는 아주 약한, 미심쩍은 틱 증상을 경험(관찰)하였다."}, {"value": 2, "label": "2점 (약함): 나의 틱은 전혀 방해가 되지 않고 대부분의 사람들이 눈치채지 못한다."}, {"value": 3, "label": "3점 (중간 정도임): 나의 틱은 나의 일상생활에 약간의 문제를 일으키고, 때때로 몇몇 사람들이 눈치를 챈다."}, {"value": 4, "label": "4점 (심함): 나의 틱은 일상생활의 한 가지 이상의 영역에서 분명한 문제를 일으키고, 거의 대부분의 상황에서 사람들이 눈치를 채게된다."}, {"value": 5, "label": "5점 (극심함): 나의 틱은 중요한 일상적 활동에 큰 문제를 일으켜서 평상적인 생활이 불가능하게 하거나, 심각한 곤경에 빠지게 한다."}, {"value": 6, "label": "6점 (매우 극심함): 나의 틱은 나를 무능력하게 하고/또는 심한 상처를 입게한다."}]}, "options": []}, "TIC_INIT": {"code": "TIC_INIT", "title": "5. 틱장애진단 초진 설문", "short_title": "틱장애 초진", "category": "소아/틱장애", "description": "지난 일주일동안 나타난 근육틱 및 음성틱 증상에 모두 체크해 주세요. (개인식별정보는 입력하지 않습니다)", "is_checklist": true, "max_score": 50, "cutoffs": [{"min": 0, "max": 2, "level": "단발/경미 틱 증상", "color": "#10b981", "badge": "normal"}, {"min": 3, "max": 6, "level": "다발성 경도~중등도 틱", "color": "#f59e0b", "badge": "mild"}, {"min": 7, "max": 12, "level": "복합/다발성 주의 요망", "color": "#f97316", "badge": "moderate"}, {"min": 13, "max": 50, "level": "광범위 다발성 틱 증상", "color": "#ef4444", "badge": "severe"}], "meta_fields": [{"key": "school_grade", "label": "1. 학력 구분", "type": "select", "options": ["미취학", "초등학생", "중학생", "고등학생", "성인"]}, {"key": "onset_when", "label": "2. TIC 증상이 처음으로 발생한 시기 (예: 2024년 5월경)", "type": "text"}, {"key": "medication", "label": "3. 현재 TIC 증상으로 인해 복용 중인 약물 여부 및 약물명", "type": "text", "placeholder": "아니오 (복용 시 약물 이름 기재)"}, {"key": "siblings", "label": "4. 형제자매 관계 (예: 1남 1녀 중 첫째)", "type": "text"}, {"key": "family_history", "label": "5. 형제나 부모, 친척 중 TIC 증상을 보이는 사람 유무", "type": "text", "placeholder": "아니오 (있을 경우 관계 기재)"}], "sections": [{"id": "motor_tics", "title": "1. 근육틱 (지난 일주일동안 나타난 증상 모두 선택)", "items": ["눈 깜박거림", "코 찡긋", "콧구멍 벌렁거리기", "코 킁킁거리기", "입 실룩거리기", "입 뾰족하게 내밀기", "입술 빨기", "입 벌리기", "인중 늘리기", "혀 내밀기", "얼굴을 찡그림", "미간 찡그리기", "눈 치켜뜨기", "한곳 응시하기", "눈동자 돌리기", "자라목 빼기", "고개를 뒤로 젖히기", "고개 좌우로 돌리기", "턱을 가슴 쪽으로 당기기", "머리카락 쓸어 올리듯 머리를 한쪽으로 휙 돌리기", "어깨를 움찔거림", "어깨를 위나 앞으로 빠르게 움직이기", "팔에 힘주기", "팔을 굽혀서 몸 쪽으로 당기면서 힘주기", "손가락에 힘주기", "물건을 잡다가 손에 힘이 들어감", "배에 팽팽하게 힘을 줌", "배 움찔거리기", "배 튕기기", "손으로 물건을 만지고 나서 손 냄새 맡기", "힘 빠지듯 무릎 굽히기", "다리에 힘이 들어가며 움찔거리기", "발을 콕콕 찍거나 구르기", "다리를 구부렸다 쫙 펴기", "튀어 오르기"], "has_other": true}, {"id": "vocal_tics", "title": "2. 음성틱 (지난 일주일동안 나타난 증상 모두 선택)", "items": ["'음음'소리", "'아아'소리", "기침소리", "'켁켁'소리", "코를 훌쩍거리는 소리", "휘파람 소리", "목을 긁어내는 듯한 소리", "동물이나 새소리", "특정단어를 반복하기", "자신이 한 말 반복하기", "타인이 한 말 따라 하기", "욕하기", "외설적인 단어 말하기"], "has_other": true}]}, "HANBANG": {"code": "HANBANG", "title": "8. 한방진단검사지 (자율신경·신체 문진)", "short_title": "한방진단검사지", "category": "수면/자율신경", "description": "오래 고민하지 마시고 처음 떠오르는 생각대로 해당하는 부위에 체크해주세요. (성함·연락처·주소 등 개인정보는 입력하지 않습니다)", "is_checklist": true, "max_score": 120, "cutoffs": [{"min": 0, "max": 8, "level": "경미한 신체 증상", "color": "#10b981", "badge": "normal"}, {"min": 9, "max": 18, "level": "경도 자율신경/신체 불균형", "color": "#f59e0b", "badge": "mild"}, {"min": 19, "max": 30, "level": "중등도 다계통 신체 증상", "color": "#f97316", "badge": "moderate"}, {"min": 31, "max": 150, "level": "중증 복합 자율신경/신체 증상", "color": "#ef4444", "badge": "severe"}], "meta_fields": [{"key": "gender_age", "label": "성별 및 연령대 (예: 여 / 30대, 개인식별정보 제외)", "type": "text", "placeholder": "예: 여 / 30대"}, {"key": "height_weight", "label": "신장(cm) / 체중(kg) (선택사항)", "type": "text", "placeholder": "예: 165cm / 55kg"}], "sections": [{"id": "sec_1_stool", "title": "1. 大便(대변)", "items": ["배변 횟수: 하루 4~5회", "배변 횟수: 하루 2~3회", "배변 횟수: 하루 1회", "배변 횟수: 2~3일에 1회", "배변 횟수: 4~7일에 1회", "변비경향이다", "설사경향이다", "대변을 하루라도 못 보면 무척 불편하다", "대변을 며칠 못 봐도 크게 불편하지 않다", "대변을 보고 난 후 시원하다", "대변봤는데도 어딘가 모르게 시원치않다(잔변감)", "대변이 잘 안 나온다 (10분이상 소요)", "집이 아닌 낯선 곳에서 대변보기가 힘들다", "대변이 단단하다", "대변이 무르다(대변이 자주 풀어진다)", "물 같은 설사가 잦다", "대변에서 피가 보인다", "대변에서 소화 안된 음식물이 자주 보인다", "아랫배에 가스가 잘 찬다", "찬 것 먹으면 설사를 잘한다", "변비약이나 건강식품 등을 복용중이다"]}, {"id": "sec_2_urine", "title": "2. 小便(소변)", "items": ["주간 소변: 하루 1~5번", "주간 소변: 하루 5~10번 정도", "야간뇨: 깨지 않는다", "야간뇨: 1~2회 깬다", "야간뇨: 3회 이상 깬다", "소변을 시원하게 본다", "소변 보고 난 후 시원치 않다(잔뇨감)", "긴장하면 소변을 자주 본다", "소변을 참기가 어렵다", "소변이 잘 안 나오거나 방울방울 떨어진다", "소변을 보고 난 후 통증을 느낀다", "소변 양이 매우 적다", "소변 색이 진하다(매우 노랗거나 붉다)", "소변을 나도 모르게 지린다", "소변에 불순물, 거품이 자주 보인다"]}, {"id": "sec_3_thirst", "title": "3. 口渴(물 마시는 양상)", "items": ["하루 수분 섭취: 500ml 이하", "하루 수분 섭취: 500ml~1L", "하루 수분 섭취: 1L 이상", "목이 말라 마신다", "건강에 좋아서/습관적으로 마신다", "립스틱, 립클로즈를 안바르면 자주 튼다", "찬물이 좋다", "미지근한 물이 좋다", "따뜻한 물이 좋다", "입안이나 입술이 마를 때가 자주 있다", "찬물을 벌컥벌컥 들이킨다", "조금 조금씩 물을 마신다", "물을 마셔도 갈증이 사라지질 않는다", "식사할 때 국이나 물 없이 못 먹는다", "과일, 음료수를 빼먹지 않고 꼭 먹는 편이다", "갈증이 나서 잠에서 자주 깬다"]}, {"id": "sec_4_sweat", "title": "4. 汗出(한출 - 땀)", "items": ["땀이 잘 난다", "땀이 잘 나지 않는다", "신체의 일부분에서만 땀이 난다(얼굴/가슴/뒷목/겨드랑이/손/발)", "땀을 내면 기분이 좋다", "땀을 내면 지친다", "자고 일어나면 식은땀이 나 있다(도한)", "사우나, 한증막에 답답해서 못 들어간다", "사우나 가거나 운동할 때만 땀이 난다"]}, {"id": "sec_5_appetite", "title": "5. 食慾(식욕), 嗜好(기호)", "items": ["입맛이 좋다(골고루 잘먹는다/양 많음)", "입맛이 없다", "아침 식사 함", "점심 식사 함", "저녁 식사 함", "야식 자주 함", "조금만 먹어도 금세 배가 부르다", "요즘 살이 찌고 있다", "요즘 살이 빠지고 있다", "허기를 참기가 힘들다", "쓴 맛을 엄청 싫어한다", "수정과, 계피 맛이 싫다", "편식을 한다", "초코렛, 사탕, 과자 등 인스턴트 식품을 많이 먹는다", "흡연을 한다", "술을 자주 마신다"]}, {"id": "sec_6_digestion", "title": "6. 消化(소화)", "items": ["소화가 잘 된다", "소화가 잘 안 된다(소화제 복용/자주 체함)", "자주 배가 아프다(공복/식후/스트레스 시)", "비위가 약하다", "속이 자주 미식거린다", "자주 가스가 차거나 헛배 부르다", "트림을 자주한다", "명치 아래가 자주 더부룩하다", "양치할 때 자주 구역질을 한다", "자주 메스껍다", "구토를 자주 한다", "차멀미가 심하다", "속이 자주 쓰리다", "신물이 자주 올라온다", "배에서 소리가 자주 난다"]}, {"id": "sec_7_cold_heat", "title": "7. 寒熱(한열)", "items": ["추위를 싫어한다", "더위를 싫어한다", "추우면 증상이 더 심해진다", "더우면 증상이 더 심해진다", "에어컨, 선풍기를 쐬는 것이 싫다", "몸이 더워도 신체 일부는 항상 차다", "열이 나고 더웠다가 다시 열이 식고 추웠다가 왔다 갔다 할 때가 자주 있다", "추운 날 밖에 있다가 실내에 들어와도 손발이 여전히 차거나 얼굴에 미열이 느껴진다", "열이 머리위로 확 오를 때가 있다(상열감)", "무안하거나 피곤하면 얼굴이 빨개지거나 상기가 잘 된다", "신체 어딘가에 열이 나는 것 같다(얼굴/손/발/피곤할 때)"]}, {"id": "sec_8_body", "title": "8. 手足, 身體(수족, 신체)", "items": ["손, 발이 따뜻하다", "손, 발이 차갑다", "발이 시려 양말을 잘 안벗는다", "손발이 화끈거린다", "손발이 자주 저린다", "손발이 자주 뻣뻣해진다", "피부 감각이 내 살 같지 않은 부분이 있다", "피곤하면 몸살이 자주 생긴다", "아랫배가 많이 차다", "다리에 쥐가 잘 난다", "잘 붓는다(전신/얼굴/손/다리,발)", "피곤하거나 신경 쓰면 눈꺼풀, 입 주위, 손이나 몸의 어딘가의 근육이 자주 떨린다", "불안하면 가슴이 많이 두근거린다", "불안하면 손톱을 물어뜯는다"]}, {"id": "sec_9_head", "title": "9. 頭部(두면, 이비인후)", "items": ["두통이 자주 있다", "하체에 힘이 갑자기 빠질 때가 자주 있다", "잘 어지럽다", "귀울림(이명)이 있다(귀가 멍하다/귀에서 소리가 난다)", "편도가 자주 붓는 편이다", "입안이 자주 헐거나 혓바늘이 잘 돋는다", "목에 무언가 걸려있는 느낌이 자주든다(매핵기)", "목이 잘 붓고 아프거나 잘 쉰다", "감기가 자주 걸린다", "호흡기증상이 잘 생긴다(기침/재채기/콧물/코막힘)", "가래가 자주 생긴다"]}, {"id": "sec_10_chest", "title": "10. 胸部(가슴부위)", "items": ["자주 가슴이 두근거린다(가만히 있어도/스트레스 시에)", "가슴이 자주 답답하다", "조금만 움직여도 숨이 자주 찬다", "한숨을 자주 쉬는 편이다", "불안감을 느낄 때가 자주 있다", "딸꾹질을 자주 한다", "가슴이 뻐근하거나 따끔거리는 통증을 느낄 때가 자주 있다", "목폴라, 쫄티, 넥타이, 브래지어 등 목이나 가슴을 조이는 옷은 답답해서 집에오면 바로 벗는다"]}, {"id": "sec_11_sleep", "title": "11. 睡眠(수면)", "items": ["잠을 잘 잔다", "잠이 잘 들지 않는다(입면장애)", "잠에서 자주 깬다", "잠에서 깨면 다시 잠들기 힘들다", "잠꼬대가 심하다", "아침에 잘 일어난다", "아침에 일어난 이후에도 한동안 몽롱하다", "수면제나 안정제를 먹고 있다", "하품을 잘 한다", "평소에 머리가 맑지 않고 자꾸 졸린다", "커피를 마시면 불편하다(불면/두근거림/속쓰림)"]}, {"id": "sec_12_skin", "title": "12. 皮膚(피부)", "items": ["피부가 긁히면 금방 빨개지고 잘 안 없어진다(피부묘기증)", "얼굴에 여드름이 많이 생긴다", "피부가 하얀편이다", "피부가 검은편이다", "음식이나 양약 먹고 두드러기가 잘 난다", "머리에 비듬이나 농이 잘 생긴다", "화장품, 금속제품에 피부가 민감하다", "어디 부딪치지 않고도 멍이 잘 드는 편이다"]}, {"id": "sec_13_joint", "title": "13. 關節(관절질환 - 아픈 곳)", "items": ["뒷목 통증", "어깨 통증", "팔 통증", "손목 통증", "손가락 통증", "다리 통증", "무릎 통증", "발목 통증", "발가락 통증", "등 통증", "허리 통증", "엉치 통증", "많이 사용하면 더 아프다", "따뜻하게 하거나 사우나에 가면 아픈게 덜하다", "찬 기운에 닿으면 아파지는 곳이 있다", "아픈 곳이 부으면서 통증을 느낄 때가 있다"]}, {"id": "sec_14_mind", "title": "14. 精神氣血(정신기혈)", "items": ["가만히 있지를 못하고, 지나치게 움직인다", "가라앉아 있는듯 움직임이 적다", "말이 많은편이다", "말이 별로 없는 편이다", "짜증이나 화를 잘낸다", "쉽게 슬퍼하고, 눈물을 잘 흘린다", "불안해서 누군가와 떨어지지 못한다", "깜깜한 곳에 못있고, 무서워 혼자서 못잔다", "쉽게 잘 놀랜다", "산만하고 집중력이 부족하다", "건망증이 심한 편이다"]}, {"id": "sec_15_female", "title": "15. 여성문진 (해당사항 있는 성인여성만 체크)", "items": ["폐경 상태이다", "생리 주기가 잘 맞는다", "생리 주기가 불규칙하다(빨라짐/늦어짐)", "생리통이 자주 있다", "생리통이 생리전에만 있다", "생리기간 중에만 통증이 있다", "생리전과 생리기간중 모두 통증이 있다", "생리통으로 진통제를 복용해야한다", "생리통 양상: 콕콕 찌름", "생리통 양상: 아랫배가 당김", "생리 때가 아닌데 하혈을 자주 한다", "냉이 있다(황색/백색)", "생리시 자주 미식거린다", "생리 전에 주체할 수 없이 식욕이 당긴다", "생리 전에 짜증을 잘 낸다"]}]}};
+    const SURVEY_PRESETS = {"초진 기본 심리세트 (BAI+PHQ9+ISI)": ["BAI", "PHQ9", "ISI"], "불안·공황 집중세트 (BAI+PDI+GAD7+ISI)": ["BAI", "PDI", "GAD7", "ISI"], "성인 초진 종합 (BAI+PHQ9+PDI+ISI+한방문진)": ["BAI", "PHQ9", "PDI", "ISI", "HANBANG"], "소아·청소년 틱 세트 (틱초진+YGTSS+ADHD)": ["TIC_INIT", "YGTSS", "ADHD"], "ADHD 단독 (코너스 ADHD설문)": ["ADHD"], "우울·불안·불면 (PHQ9+GAD7+ISI)": ["PHQ9", "GAD7", "ISI"], "한방진단검사지 단독": ["HANBANG"]};
+
+    // 상태 관리
+    let activeSurveyCodes = [];
+    let responses = {};      // { surveyCode: [val0, val1, ...] or { sec_id: [...] } }
+    let metaResponses = {};  // { surveyCode: { key: val } }
+
+    function showToast(msg, duration = 2400) {
+      const el = document.getElementById("toastMsg");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        el.style.display = "none";
+      }, duration);
+    }
+
+    // URL 쿼리 파라미터 파싱 (?id=차트번호&type=설문종류)
+    function parseUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const chartId = (params.get("id") || params.get("chart_id") || "").trim();
+      const typeParam = (params.get("type") || params.get("survey") || "").trim();
+      const sbUrl = (params.get("sb_url") || "").trim();
+      const sbKey = (params.get("sb_key") || "").trim();
+
+      if (sbUrl) DEFAULT_SUPABASE_CONFIG.url = sbUrl;
+      if (sbKey) DEFAULT_SUPABASE_CONFIG.anonKey = sbKey;
+
+      const chartInput = document.getElementById("chartIdInput");
+      if (chartId) {
+        chartInput.value = chartId;
+        updateHeaderBadge(chartId);
+      }
+
+      chartInput.addEventListener("input", (e) => {
+        updateHeaderBadge(e.target.value.trim());
+      });
+
+      // type 파라미터 분석 (예: ?type=PHQ9 또는 ?type=BAI,PHQ9,ISI)
+      if (typeParam) {
+        const codes = typeParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+        // 별칭 매핑 (예: INSOMNIA -> ISI, TIC -> TIC_INIT, PHQ-9 -> PHQ9, GAD-7 -> GAD7)
+        const aliasMap = {
+          "PHQ-9": "PHQ9",
+          "GAD-7": "GAD7",
+          "INSOMNIA": "ISI",
+          "TIC": "TIC_INIT",
+          "TIC_INIT": "TIC_INIT",
+          "한방문진": "HANBANG",
+          "ALL_PSYCH": "BAI,PHQ9,PDI,ISI"
+        };
+        let resolved = [];
+        codes.forEach(c => {
+          const mapped = aliasMap[c] || c;
+          mapped.split(",").forEach(m => {
+            if (SURVEY_CATALOG[m] && !resolved.includes(m)) {
+              resolved.push(m);
+            }
+          });
+        });
+        if (resolved.length > 0) {
+          activeSurveyCodes = resolved;
+          // URL로 설문종류가 명확히 지정된 경우 설문 변경 칩은 접어두어 환자 혼선 방지
+          document.getElementById("surveySelectorWrap").style.display = "none";
+        }
+      }
+
+      if (activeSurveyCodes.length === 0) {
+        // 기본값: PHQ9, BAI, ISI
+        activeSurveyCodes = ["BAI", "PHQ9", "ISI"];
+      }
+
+      renderSurveyChips();
+      initSurveyState();
+      renderAllQuestions();
+      updateProgress();
+    }
+
+    function updateHeaderBadge(val) {
+      const badge = document.getElementById("headerChartBadge");
+      if (val) {
+        badge.textContent = `차트번호: ${val}`;
+        badge.style.background = "#ccfbf1";
+      } else {
+        badge.textContent = "차트번호 미입력";
+        badge.style.background = "#fef2f2";
+      }
+    }
+
+    function renderSurveyChips() {
+      const container = document.getElementById("surveyChipsContainer");
+      container.innerHTML = "";
+      Object.keys(SURVEY_CATALOG).forEach(code => {
+        const spec = SURVEY_CATALOG[code];
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "survey-chip" + (activeSurveyCodes.includes(code) ? " active" : "");
+        chip.textContent = spec.short_title || spec.title;
+        chip.onclick = () => {
+          if (activeSurveyCodes.includes(code)) {
+            if (activeSurveyCodes.length === 1) {
+              showToast("최소 1개 이상의 설문을 선택해야 합니다.");
+              return;
+            }
+            activeSurveyCodes = activeSurveyCodes.filter(c => c !== code);
+          } else {
+            activeSurveyCodes.push(code);
+          }
+          renderSurveyChips();
+          initSurveyState();
+          renderAllQuestions();
+          updateProgress();
+        };
+        container.appendChild(chip);
+      });
+    }
+
+    function initSurveyState() {
+      activeSurveyCodes.forEach(code => {
+        const spec = SURVEY_CATALOG[code];
+        if (!spec) return;
+        if (spec.is_checklist) {
+          if (!responses[code]) {
+            responses[code] = {};
+            (spec.sections || []).forEach(sec => {
+              responses[code][sec.id] = [];
+              responses[code][sec.id + "_other"] = "";
+            });
+          }
+          if (!metaResponses[code]) metaResponses[code] = {};
+        } else {
+          if (!responses[code] || !Array.isArray(responses[code])) {
+            responses[code] = new Array(spec.questions.length).fill(null);
+          }
+        }
+      });
+    }
+
+    function renderAllQuestions() {
+      const root = document.getElementById("questionsRoot");
+      root.innerHTML = "";
+
+      activeSurveyCodes.forEach((code) => {
+        const spec = SURVEY_CATALOG[code];
+        if (!spec) return;
+
+        // 설문 섹션 배너
+        const secHeader = document.createElement("div");
+        secHeader.className = "survey-section-header";
+        secHeader.innerHTML = `
+          <h2 class="survey-section-title">${spec.title}</h2>
+          <p class="survey-section-desc">${spec.description || ""}</p>
+        `;
+        root.appendChild(secHeader);
+
+        if (spec.is_checklist) {
+          renderChecklistSurvey(root, code, spec);
+        } else {
+          renderLikertSurvey(root, code, spec);
+        }
+      });
+    }
+
+    function renderLikertSurvey(root, code, spec) {
+      spec.questions.forEach((qText, qIdx) => {
+        const card = document.createElement("div");
+        const currentVal = responses[code][qIdx];
+        card.className = "question-card" + (currentVal !== null ? " answered" : "");
+        card.id = `qcard_${code}_${qIdx}`;
+        card.dataset.surveyCode = code;
+        card.dataset.qIdx = qIdx;
+
+        const opts = (spec.custom_options_by_index && spec.custom_options_by_index[qIdx])
+          ? spec.custom_options_by_index[qIdx]
+          : spec.options;
+
+        let optionsHtml = "";
+        opts.forEach((opt) => {
+          const isSelected = currentVal === opt.value;
+          optionsHtml += `
+            <button
+              type="button"
+              class="option-btn ${isSelected ? "selected" : ""}"
+              onclick="selectLikertOption('${code}', ${qIdx}, ${opt.value})"
+            >
+              <span class="option-radio-circle">
+                <span class="option-radio-inner"></span>
+              </span>
+              <span style="flex:1;">${opt.label}</span>
+              <span class="option-score-badge">${opt.value}점</span>
+            </button>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="question-header">
+            <div class="question-text">${qText}</div>
+            <div class="status-dot" id="dot_${code}_${qIdx}">${currentVal !== null ? "✓" : (qIdx + 1)}</div>
+          </div>
+          <div class="options-list" id="opts_${code}_${qIdx}">
+            ${optionsHtml}
+          </div>
+        `;
+        root.appendChild(card);
+      });
+    }
+
+    function selectLikertOption(code, qIdx, value) {
+      responses[code][qIdx] = value;
+
+      // UI 즉시 업데이트
+      const card = document.getElementById(`qcard_${code}_${qIdx}`);
+      if (card) {
+        card.classList.remove("unanswered-error");
+        card.classList.add("answered");
+      }
+      const dot = document.getElementById(`dot_${code}_${qIdx}`);
+      if (dot) dot.textContent = "✓";
+
+      const optsContainer = document.getElementById(`opts_${code}_${qIdx}`);
+      if (optsContainer) {
+        const spec = SURVEY_CATALOG[code];
+        const opts = (spec.custom_options_by_index && spec.custom_options_by_index[qIdx])
+          ? spec.custom_options_by_index[qIdx]
+          : spec.options;
+        const buttons = optsContainer.querySelectorAll(".option-btn");
+        buttons.forEach((btn, idx) => {
+          if (opts[idx] && opts[idx].value === value) {
+            btn.classList.add("selected");
+          } else {
+            btn.classList.remove("selected");
+          }
+        });
+      }
+
+      updateProgress();
+
+      // 다음 문항으로 부드럽게 자동 스크롤 이동
+      setTimeout(() => {
+        scrollToNextQuestion(code, qIdx);
+      }, 210);
+    }
+
+    function scrollToNextQuestion(currentCode, currentQIdx) {
+      const spec = SURVEY_CATALOG[currentCode];
+      // 1) 현재 설문의 다음 문항 확인
+      if (spec && !spec.is_checklist && currentQIdx + 1 < spec.questions.length) {
+        const nextCard = document.getElementById(`qcard_${currentCode}_${currentQIdx + 1}`);
+        if (nextCard) {
+          nextCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+      }
+      // 2) 다음 설문의 첫 문항 확인
+      const codeIdx = activeSurveyCodes.indexOf(currentCode);
+      if (codeIdx >= 0 && codeIdx + 1 < activeSurveyCodes.length) {
+        const nextCode = activeSurveyCodes[codeIdx + 1];
+        const nextFirst = document.getElementById(`qcard_${nextCode}_0`) || document.getElementById(`chksec_${nextCode}_0`);
+        if (nextFirst) {
+          nextFirst.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    }
+
+    function renderChecklistSurvey(root, code, spec) {
+      // 메타 문항 (학력, 발병시기 등 비식별 임상문항)
+      if (spec.meta_fields && spec.meta_fields.length > 0) {
+        const metaCard = document.createElement("div");
+        metaCard.className = "question-card answered";
+        let metaHtml = `<div class="question-text" style="margin-bottom:12px;">기본 임상 문진 (개인식별정보 제외)</div>`;
+        spec.meta_fields.forEach(mf => {
+          const val = (metaResponses[code] && metaResponses[code][mf.key]) || "";
+          if (mf.type === "select") {
+            const optsHtml = mf.options.map(o => `<option value="${o}" ${val === o ? "selected" : ""}>${o}</option>`).join("");
+            metaHtml += `
+              <div class="field-group">
+                <label class="field-label">${mf.label}</label>
+                <select class="chart-input" style="font-size:0.95rem; padding:10px;" onchange="updateMetaField('${code}', '${mf.key}', this.value)">
+                  <option value="">선택해주세요</option>
+                  ${optsHtml}
+                </select>
+              </div>
+            `;
+          } else {
+            metaHtml += `
+              <div class="field-group">
+                <label class="field-label">${mf.label}</label>
+                <input type="text" class="chart-input" style="font-size:0.95rem; padding:10px;"
+                  placeholder="${mf.placeholder || ''}"
+                  value="${val}"
+                   oninput="updateMetaField('${code}', '${mf.key}', this.value)" />
+              </div>
+            `;
+          }
+        });
+        metaCard.innerHTML = metaHtml;
+        root.appendChild(metaCard);
+      }
+
+      // 섹션별 체크리스트 렌더링
+      (spec.sections || []).forEach((sec, sIdx) => {
+        const card = document.createElement("div");
+        card.className = "question-card answered";
+        card.id = `chksec_${code}_${sIdx}`;
+
+        const selectedArr = (responses[code] && responses[code][sec.id]) || [];
+        let itemsHtml = "";
+        sec.items.forEach((itemText, iIdx) => {
+          const isChecked = selectedArr.includes(itemText);
+          itemsHtml += `
+            <button
+              type="button"
+              class="check-item-btn ${isChecked ? "checked" : ""}"
+              id="chkbtn_${code}_${sec.id}_${iIdx}"
+              onclick="toggleChecklistItem('${code}', '${sec.id}', ${iIdx}, ${sIdx})"
+            >
+              <span class="check-box-icon">✓</span>
+              <span style="text-align:left;">${itemText}</span>
+            </button>
+          `;
+        });
+
+        let otherHtml = "";
+        if (sec.has_other) {
+          const otherVal = (responses[code] && responses[code][sec.id + "_other"]) || "";
+          otherHtml = `
+            <div style="margin-top:10px;">
+              <input type="text" class="chart-input" style="font-size:0.92rem; padding:10px;"
+                placeholder="기타 증상이 있다면 직접 입력해주세요"
+                value="${otherVal}"
+                oninput="responses['${code}']['${sec.id}_other'] = this.value" />
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="question-header">
+            <div class="question-text">${sec.title}</div>
+            <div class="status-dot" style="width:auto; padding:0 10px; border-radius:99px;" id="chkcount_${code}_${sec.id}">
+              ${selectedArr.length}개 선택
+            </div>
+          </div>
+          <div class="checklist-grid two-col">
+            ${itemsHtml}
+          </div>
+          ${otherHtml}
+        `;
+        root.appendChild(card);
+      });
+    }
+
+    function updateMetaField(code, key, val) {
+      if (!metaResponses[code]) metaResponses[code] = {};
+      metaResponses[code][key] = val;
+    }
+
+    function toggleChecklistItem(code, secId, itemIdx, secIdx) {
+      const spec = SURVEY_CATALOG[code];
+      const sec = spec.sections[secIdx];
+      const itemText = sec.items[itemIdx];
+      const arr = responses[code][secId] || [];
+      const pos = arr.indexOf(itemText);
+      const btn = document.getElementById(`chkbtn_${code}_${secId}_${itemIdx}`);
+
+      if (pos >= 0) {
+        arr.splice(pos, 1);
+        if (btn) btn.classList.remove("checked");
+      } else {
+        arr.push(itemText);
+        if (btn) btn.classList.add("checked");
+      }
+      responses[code][secId] = arr;
+
+      const badge = document.getElementById(`chkcount_${code}_${secId}`);
+      if (badge) badge.textContent = `${arr.length}개 선택`;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      let totalLikert = 0;
+      let answeredLikert = 0;
+
+      activeSurveyCodes.forEach(code => {
+        const spec = SURVEY_CATALOG[code];
+        if (!spec) return;
+        if (!spec.is_checklist) {
+          const arr = responses[code] || [];
+          totalLikert += spec.questions.length;
+          answeredLikert += arr.filter(v => v !== null && v !== undefined).length;
+        }
+      });
+
+      const countEl = document.getElementById("progressCount");
+      const fillEl = document.getElementById("progressBarFill");
+
+      if (totalLikert === 0) {
+        countEl.textContent = "자유 체크형 설문";
+        fillEl.style.width = "100%";
+      } else {
+        const pct = Math.round((answeredLikert / totalLikert) * 100);
+        countEl.textContent = `${answeredLikert} / ${totalLikert} 문항 (${pct}%)`;
+        fillEl.style.width = `${pct}%`;
+      }
+    }
+
+    // =========================================================================
+    // 2. 클라이언트 채점 및 JSON 패키징 로직
+    // =========================================================================
+    function evaluateSurveyClient(code) {
+      const spec = SURVEY_CATALOG[code];
+      if (spec.is_checklist) {
+        const secMap = responses[code] || {};
+        let totalChecked = 0;
+        let sectionDetails = [];
+        let alerts = [];
+
+        (spec.sections || []).forEach(sec => {
+          const checked = secMap[sec.id] || [];
+          const other = (secMap[sec.id + "_other"] || "").trim();
+          const cnt = checked.length + (other ? 1 : 0);
+          totalChecked += cnt;
+          if (cnt > 0) {
+            sectionDetails.push({
+              section_id: sec.id,
+              section_title: sec.title,
+              count: cnt,
+              checked_items: checked,
+              other_text: other
+            });
+          }
+        });
+
+        let severity = "정상";
+        let color = "#10b981";
+        (spec.cutoffs || []).forEach(c => {
+          if (totalChecked >= c.min && totalChecked <= c.max) {
+            severity = c.level;
+            color = c.color;
+          }
+        });
+
+        return {
+          survey_code: code,
+          title: spec.title,
+          short_title: spec.short_title,
+          is_checklist: true,
+          total_score: totalChecked,
+          max_score: spec.max_score,
+          severity: `${severity} (체크 ${totalChecked}개)`,
+          color: color,
+          meta_answers: metaResponses[code] || {},
+          answers: secMap,
+          section_summaries: sectionDetails,
+          alerts: alerts
+        };
+      }
+
+      // 리커트 척도형
+      const ansArr = (responses[code] || []).map(v => (v === null || v === undefined) ? 0 : Number(v));
+      let totalScore = 0;
+      let subscales = {};
+
+      if (spec.is_ygtss) {
+        const motor = ansArr.slice(0, 5).reduce((a, b) => a + b, 0);
+        const vocal = ansArr.slice(5, 10).reduce((a, b) => a + b, 0);
+        const impair = ansArr[10] || 0;
+        const globalImp = ansArr[11] || 0;
+        totalScore = motor + vocal + impair;
+        subscales = {
+          "운동틱 점수": `${motor}/25점`,
+          "음성틱 점수": `${vocal}/25점`,
+          "총 틱증상 점수(운동+음성)": `${motor + vocal}/50점`,
+          "틱장애척도(괴로움)": `${impair}/50점`,
+          "전반적인 인상": `${globalImp}/6점`
+        };
+      } else {
+        totalScore = ansArr.reduce((a, b) => a + b, 0);
+        if (spec.subscales) {
+          Object.values(spec.subscales).forEach(sub => {
+            const sSum = sub.indices.reduce((acc, idx) => acc + (ansArr[idx] || 0), 0);
+            subscales[sub.name] = `${sSum}/${sub.max}점`;
+          });
+        }
+      }
+
+      let severity = "정상";
+      let color = "#10b981";
+      (spec.cutoffs || []).forEach(c => {
+        if (totalScore >= c.min && totalScore <= c.max) {
+          severity = c.level;
+          color = c.color;
+        }
+      });
+
+      const threshold = spec.alert_threshold || 2;
+      const criticalSet = new Set(spec.critical_items || []);
+      let alerts = [];
+      let itemizedDetails = [];
+
+      ansArr.forEach((score, idx) => {
+        const itemNo = idx + 1;
+        const qText = spec.questions[idx] || `문항 ${itemNo}`;
+        const opts = (spec.custom_options_by_index && spec.custom_options_by_index[idx])
+          ? spec.custom_options_by_index[idx]
+          : spec.options;
+        const matchedOpt = (opts || []).find(o => o.value === score);
+        const optLabel = matchedOpt ? matchedOpt.label : `${score}점`;
+
+        itemizedDetails.push({
+          item_no: itemNo,
+          question: qText,
+          score: score,
+          label: optLabel
+        });
+
+        if (code === "PHQ9" && itemNo === 9 && score >= 1) {
+          alerts.push({
+            item_no: itemNo,
+            question: qText,
+            score: score,
+            label: optLabel,
+            is_critical: true,
+            alert_note: "🚨 자살/자해 사고 위험 문항 양성 (즉시 임상 면담 필요)"
+          });
+        } else if (score >= threshold || (criticalSet.has(itemNo) && score >= 2)) {
+          alerts.push({
+            item_no: itemNo,
+            question: qText,
+            score: score,
+            label: optLabel,
+            is_critical: criticalSet.has(itemNo),
+            alert_note: criticalSet.has(itemNo) ? "핵심 주의 증상" : `${threshold}점 이상 체크`
+          });
+        }
+      });
+
+      return {
+        survey_code: code,
+        title: spec.title,
+        short_title: spec.short_title,
+        is_checklist: false,
+        total_score: totalScore,
+        max_score: spec.max_score,
+        severity: severity,
+        color: color,
+        subscales: subscales,
+        alerts: alerts,
+        answers: ansArr,
+        itemized_details: itemizedDetails
+      };
+    }
+
+    // =========================================================================
+    // 3. 설문 제출 핸들러 (미응답 검증 -> JSON 패키징 -> Supabase REST API POST)
+    // =========================================================================
+    async function handleSubmitSurvey() {
+      const chartIdInput = document.getElementById("chartIdInput");
+      const chartId = chartIdInput.value.trim();
+
+      if (!chartId) {
+        showToast("상단에 차트번호를 입력해주세요!");
+        chartIdInput.focus();
+        chartIdInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      // 리커트 설문 미응답 문항 검증
+      for (const code of activeSurveyCodes) {
+        const spec = SURVEY_CATALOG[code];
+        if (!spec || spec.is_checklist) continue;
+        const arr = responses[code] || [];
+        for (let i = 0; i < spec.questions.length; i++) {
+          if (arr[i] === null || arr[i] === undefined) {
+            const card = document.getElementById(`qcard_${code}_${i}`);
+            if (card) {
+              card.classList.add("unanswered-error");
+              card.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            showToast(`[${spec.short_title}] ${i + 1}번 문항을 선택해주세요.`);
+            return;
+          }
+        }
+      }
+
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "진료실로 안전하게 전송 중...";
+
+      // 전체 설문 결과 패키징 (survey_responses 테이블 컬럼 구조: chart_id, survey_type, scores, raw_answers)
+      const submittedAt = new Date().toISOString();
+      const surveyResults = activeSurveyCodes.map(code => evaluateSurveyClient(code));
+      const summaryParts = surveyResults.map(r => `${r.short_title}: ${r.total_score}/${r.max_score}점(${r.severity})` );
+      const scoreSummaryText = summaryParts.join(" | ");
+
+      // scores (jsonb): 설문별 총점, 중증도 등급, 소척도, 주의문항 요약
+      const scoresJson = {
+        submitted_at: submittedAt,
+        summary_text: scoreSummaryText,
+        surveys: surveyResults.map(r => ({
+          survey_code: r.survey_code,
+          title: r.title,
+          short_title: r.short_title,
+          is_checklist: r.is_checklist,
+          total_score: r.total_score,
+          max_score: r.max_score,
+          severity: r.severity,
+          color: r.color,
+          subscales: r.subscales || {},
+          alerts: r.alerts || [],
+          section_summaries: r.section_summaries || []
+        }))
+      };
+
+      // raw_answers (jsonb): 문항별 원본 응답 배열 (단일 설문이면 배열도 함께 제공, 다중 설문이면 설문코드별 매핑)
+      const answersByCode = {};
+      surveyResults.forEach(r => {
+        answersByCode[r.survey_code] = {
+          answers: r.answers,
+          meta_answers: r.meta_answers || {},
+          itemized_details: r.itemized_details || []
+        };
+      });
+      const rawAnswersJson = activeSurveyCodes.length === 1
+        ? {
+            survey_code: activeSurveyCodes[0],
+            answers: surveyResults[0].answers,
+            meta_answers: surveyResults[0].meta_answers || {},
+            by_survey: answersByCode
+          }
+        : {
+            by_survey: answersByCode
+          };
+
+      const relayRow = {
+        chart_id: chartId,
+        survey_type: activeSurveyCodes.join(","),
+        scores: scoresJson,
+        raw_answers: rawAnswersJson
+      };
+
+      try {
+        if (!DEFAULT_SUPABASE_CONFIG.url || !DEFAULT_SUPABASE_CONFIG.anonKey || DEFAULT_SUPABASE_CONFIG.url.includes("your-project-id")) {
+          throw new Error("SUPABASE_NOT_CONFIGURED");
+        }
+
+        const endpoint = `${DEFAULT_SUPABASE_CONFIG.url.replace(/\/$/, "")}/rest/v1/survey_responses`;
+        const apiKey = DEFAULT_SUPABASE_CONFIG.anonKey.trim();
+        const reqHeaders = {
+          "Content-Type": "application/json",
+          "apikey": apiKey,
+          "Prefer": "return=minimal"
+        };
+        // 기존 JWT(eyJ...) 형식일 때만 Authorization 헤더 추가, 신규 sb_publishable_... 키는 apikey 헤더만 전송
+        if (apiKey.startsWith("eyJ")) {
+          reqHeaders["Authorization"] = `Bearer ${apiKey}`;
+        }
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: reqHeaders,
+          body: JSON.stringify(relayRow)
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`HTTP ${res.status}: ${errText}`);
+        }
+
+        showCompletionScreen(chartId, surveyResults, true);
+      } catch (err) {
+        console.error("전송 오류:", err);
+        // 데모/오프라인 상태이거나 Supabase 미설정 시에도 로컬 백업 JSON 다운로드 안내 제공
+        showCompletionScreen(chartId, surveyResults, false, relayRow, err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "설문 작성 완료 및 제출하기";
+      }
+    }
+
+    function showCompletionScreen(chartId, surveyResults, isCloudSuccess, fallbackPayload = null, errMsg = "") {
+      document.getElementById("surveyFormContainer").style.display = "none";
+      document.getElementById("submitBar").style.display = "none";
+      const screen = document.getElementById("completeScreen");
+      screen.style.display = "block";
+
+      const box = document.getElementById("submittedSummaryBox");
+      let html = `<div style="font-weight:800; margin-bottom:8px; color:#0f766e;">접수 차트번호: ${chartId}</div>`;
+      surveyResults.forEach(r => {
+        html += `<div style="margin-bottom:4px;">• <strong>${r.title}</strong>: 완료</div>`;
+      });
+
+      if (!isCloudSuccess && fallbackPayload) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fallbackPayload, null, 2));
+        html += `
+          <div style="margin-top:12px; padding:10px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; color:#92400e; font-size:0.84rem;">
+            ⚠️ 클라우드 중계소 연결 설정 전이거나 일시적 네트워크 오류입니다 (${errMsg}).<br/>
+            아래 버튼을 눌러 결과 파일을 저장하거나 데스크에 화면을 보여주세요.<br/>
+            <a href="${dataStr}" download="survey_${chartId}.json"
+               style="display:inline-block; margin-top:8px; padding:8px 14px; background:#d97706; color:#fff; border-radius:8px; text-decoration:none; font-weight:700;">
+               📥 응답 데이터(JSON) 파일 다운로드
+            </a>
+          </div>
+        `;
+      }
+
+      box.innerHTML = html;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.addEventListener("DOMContentLoaded", parseUrlParams);
+  </script>
+</body>
+</html>
