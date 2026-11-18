@@ -50,7 +50,7 @@ def get_config() -> Dict[str, str]:
         "SUPABASE_URL": os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
         "SUPABASE_ANON_KEY": os.getenv("SUPABASE_ANON_KEY", "").strip(),
         "LOCAL_SAVE_DIR": os.getenv("LOCAL_SAVE_DIR", default_dir).strip() or default_dir,
-        "PATIENT_WEB_URL": os.getenv("PATIENT_WEB_URL", "https://your-clinic-survey.pages.dev").strip(),
+        "PATIENT_WEB_URL": os.getenv("PATIENT_WEB_URL", "https://hearimay-cell.github.io/clinic-survey").strip(),
     }
 
 
